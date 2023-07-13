@@ -3,8 +3,21 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../path/to/store';
 import { fetchTableData, filterTableItems, resetFilter } from '../path/to/tableSlice';
 
+interface Notification {
+  id: number;
+  title: string;
+  message: string;
+}
+
+interface NotificationTableState {
+  tableItems: Notification[];
+  originalTableItems: Notification[];
+  isFetching: boolean;
+  error: string | null;
+}
+
 interface TableContextData {
-  tableItems: string[];
+  tableItems: Notification[];
   isFetching: boolean;
   error: string | null;
   fetchTableData: () => void;
@@ -24,7 +37,9 @@ export const useTableContext = (): TableContextData => {
 
 export const TableProvider: React.FC = ({ children }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { tableItems, isFetching, error } = useSelector((state: RootState) => state.table);
+  const { tableItems, isFetching, error } = useSelector(
+    (state: RootState) => state.table
+  ) as NotificationTableState;
 
   const fetchTableDataAction = () => {
     dispatch(fetchTableData());
