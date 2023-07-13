@@ -1,53 +1,68 @@
 import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 
-interface TableState {
-  tableItems: string[];
-  originalTableItems: string[];
+interface Notification {
+  id: number;
+  title: string;
+  message: string;
+}
+
+interface NotificationTableState {
+  tableItems: Notification[];
+  originalTableItems: Notification[];
   isFetching: boolean;
   error: string | null;
 }
 
-const initialState: TableState = {
-  tableItems: [],
-  originalTableItems: [],
-  isFetching: false,
-  error: null,
-};
+interface NotificationTableServiceDataAPIResp {
+  items: Notification[];
+}
 
-export const fetchTableData = createAsyncThunk('table/fetchTableData', async () => {
+export const fetchTableData = createAsyncThunk<
+  Notification[],
+  void,
+  { rejectValue: string }
+>('table/fetchTableData', async (_, { rejectWithValue }) => {
   try {
-    const response = await axios.get('YOUR_API_ENDPOINT');
+    const response: AxiosResponse<NotificationTableServiceDataAPIResp> = await axios.get(
+      'YOUR_API_ENDPOINT'
+    );
     return response.data.items;
   } catch (error) {
-    throw new Error('Error fetching table items');
+    return rejectWithValue('Error fetching table items');
   }
 });
 
-export const filterTableItems = createAsyncThunk(
-  'table/filterTableItems',
-  (value: string, { getState, dispatch }) => {
-    const { originalTableItems } = getState().table as TableState;
+export const filterTableItems = createAsyncThunk<
+  Notification[],
+  string,
+  { getState: () => { table: NotificationTableState } }
+>('table/filterTableItems', (value, { getState, dispatch }) => {
+  const { originalTableItems } = getState().table;
 
-    const filteredItems = originalTableItems.filter((item) =>
-      item.toLowerCase().includes(value.toLowerCase())
-    );
+  const filteredItems = originalTableItems.filter((item) =>
+    item.title.toLowerCase().includes(value.toLowerCase())
+  );
 
-    dispatch(setTableItems(filteredItems));
+  dispatch(setTableItems(filteredItems));
 
-    return filteredItems;
-  }
-);
+  return filteredItems;
+});
 
 const tableSlice = createSlice({
   name: 'table',
-  initialState,
+  initialState: {
+    tableItems: [],
+    originalTableItems: [],
+    isFetching: false,
+    error: null,
+  } as NotificationTableState,
   reducers: {
-    setTableItems: (state, action: PayloadAction<string[]>) => {
+    setTableItems: (state, action: PayloadAction<Notification[]>) => {
       state.tableItems = action.payload;
     },
     resetFilter: (state) => {
-      state.tableItems = [...state.originalTableItems];
+      state.tableItems = state.originalTableItems;
     },
   },
   extraReducers: (builder) => {
@@ -56,14 +71,14 @@ const tableSlice = createSlice({
         state.isFetching = true;
         state.error = null;
       })
-      .addCase(fetchTableData.fulfilled, (state, action: PayloadAction<string[]>) => {
+      .addCase(fetchTableData.fulfilled, (state, action) => {
         state.tableItems = action.payload;
         state.originalTableItems = action.payload;
         state.isFetching = false;
       })
-      .addCase(fetchTableData.rejected, (state) => {
+      .addCase(fetchTableData.rejected, (state, action) => {
         state.isFetching = false;
-        state.error = 'Error fetching table items';
+        state.error = action.payload as string;
       });
   },
 });
