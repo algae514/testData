@@ -1,70 +1,63 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { RootState, AppDispatch } from '../path/to/store';
-import { fetchTableData, filterTableItems, resetFilter } from '../path/to/tableSlice';
+import { RootState } from '../path/to/store';
+import { updateCurrentPage, updateTableItems, setSearchQuery, setToBeFitFilter } from '../path/to/tableSlice';
+import { TableContextData } from './types';
 
-interface Notification {
-  id: number;
-  title: string;
-  message: string;
-}
-
-interface NotificationTableState {
-  tableItems: Notification[];
-  originalTableItems: Notification[];
-  isFetching: boolean;
-  error: string | null;
-}
-
-interface TableContextData {
-  tableItems: Notification[];
-  isFetching: boolean;
-  error: string | null;
-  fetchTableData: () => void;
-  filterTable: (value: string) => void;
-  resetFilter: () => void;
-}
-
-const TableContext = createContext<TableContextData | undefined>(undefined);
-
-export const useTableContext = (): TableContextData => {
-  const context = useContext(TableContext);
-  if (!context) {
-    throw new Error('useTableContext must be used within a TableProvider');
-  }
-  return context;
-};
+export const TableContext = React.createContext<TableContextData | undefined>(undefined);
 
 export const TableProvider: React.FC = ({ children }) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { tableItems, isFetching, error } = useSelector(
-    (state: RootState) => state.table
-  ) as NotificationTableState;
+  const dispatch = useDispatch();
 
-  const fetchTableDataAction = () => {
-    dispatch(fetchTableData());
-  };
-
-  const filterTableAction = (value: string) => {
-    dispatch(filterTableItems(value));
-  };
-
-  const resetFilterAction = () => {
-    dispatch(resetFilter());
-  };
+  const tableItems = useSelector(selectTableItems);
+  const isFetching = useSelector(selectIsFetching);
+  const error = useSelector(selectError);
+  const currentPage = useSelector(selectCurrentPage);
+  const searchQuery = useSelector(selectSearchQuery);
+  const toBeFitFilter = useSelector(selectToBeFitFilter);
 
   useEffect(() => {
-    fetchTableDataAction();
-  }, []);
+    dispatch(updateTableItems());
+  }, [currentPage, dispatch, searchQuery, toBeFitFilter]);
+
+  const fetchTableData = () => {
+    // Fetch data logic
+  };
+
+  const filterTable = (query: string) => {
+    dispatch(setSearchQuery(query));
+  };
+
+  const resetFilter = () => {
+    dispatch(setSearchQuery(''));
+    dispatch(setToBeFitFilter([]));
+  };
+
+  const updateCurrentPage = (newPage: number) => {
+    dispatch(updateCurrentPage(newPage));
+  };
+
+  const updateToBeFitFilter = (filter: string[]) => {
+    dispatch(setToBeFitFilter(filter));
+  };
 
   const contextValue: TableContextData = {
     tableItems,
     isFetching,
     error,
-    fetchTableData: fetchTableDataAction,
-    filterTable: filterTableAction,
-    resetFilter: resetFilterAction,
+    currentPage,
+    searchQuery,
+    toBeFitFilter,
+    fetchTableData,
+    filterTable,
+    resetFilter,
+    updateCurrentPage,
+    updateToBeFitFilter,
   };
 
-  return <TableContext.Provider value={contextValue}>{children}</TableContext.Provider>;
+  return (
+    <TableContext.Provider value={contextValue}>
+      {children}
+    </TableContext.Provider>
+  );
 };
