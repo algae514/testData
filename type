@@ -1,0 +1,30 @@
+export interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  toBeFit: string;
+}
+
+export interface NotificationTableState {
+  tableItems: Notification[];
+  originalTableItems: Notification[];
+  isFetching: boolean;
+  error: string | null;
+  currentPage: number;
+  searchQuery: string;
+  toBeFitFilter: string[];
+}
+
+export interface TableContextData {
+  tableItems: Notification[];
+  isFetching: boolean;
+  error: string | null;
+  currentPage: number;
+  searchQuery: string;
+  toBeFitFilter: string[];
+  fetchTableData: () => void;
+  filterTable: (searchQuery: string) => void;
+  resetFilter: () => void;
+  updateCurrentPage: (newPage: number) => void;
+  updateToBeFitFilter: (filter: string[]) => void;
+}
