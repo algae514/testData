@@ -1,88 +1,67 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import axios, { AxiosResponse } from 'axios';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { RootState } from '../path/to/store';
+import { Notification, NotificationTableState } from './types';
 
-interface Notification {
-  id: number;
-  title: string;
-  message: string;
-}
+const ITEMS_PER_PAGE = 10; // Number of items to display per page
 
-interface NotificationTableState {
-  tableItems: Notification[];
-  originalTableItems: Notification[];
-  isFetching: boolean;
-  error: string | null;
-}
-
-interface NotificationTableServiceDataAPIResp {
-  items: Notification[];
-}
-
-export const fetchTableData = createAsyncThunk<
-  Notification[],
-  void,
-  { rejectValue: string }
->('table/fetchTableData', async (_, { rejectWithValue }) => {
-  try {
-    const response: AxiosResponse<NotificationTableServiceDataAPIResp> = await axios.get(
-      'YOUR_API_ENDPOINT'
-    );
-    return response.data.items;
-  } catch (error) {
-    return rejectWithValue('Error fetching table items');
-  }
-});
-
-export const filterTableItems = createAsyncThunk<
-  Notification[],
-  string,
-  { getState: () => { table: NotificationTableState } }
->('table/filterTableItems', (value, { getState, dispatch }) => {
-  const { originalTableItems } = getState().table;
-
-  const filteredItems = originalTableItems.filter((item) =>
-    item.title.toLowerCase().includes(value.toLowerCase())
-  );
-
-  dispatch(setTableItems(filteredItems));
-
-  return filteredItems;
-});
+const initialState: NotificationTableState = {
+  tableItems: [],
+  originalTableItems: [],
+  isFetching: false,
+  error: null,
+  currentPage: 1,
+  searchQuery: '',
+  toBeFitFilter: [],
+};
 
 const tableSlice = createSlice({
   name: 'table',
-  initialState: {
-    tableItems: [],
-    originalTableItems: [],
-    isFetching: false,
-    error: null,
-  } as NotificationTableState,
+  initialState,
   reducers: {
+    setCurrentPage: (state, action: PayloadAction<number>) => {
+      state.currentPage = action.payload;
+    },
     setTableItems: (state, action: PayloadAction<Notification[]>) => {
       state.tableItems = action.payload;
     },
-    resetFilter: (state) => {
-      state.tableItems = state.originalTableItems;
+    setSearchQuery: (state, action: PayloadAction<string>) => {
+      state.searchQuery = action.payload;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchTableData.pending, (state) => {
-        state.isFetching = true;
-        state.error = null;
-      })
-      .addCase(fetchTableData.fulfilled, (state, action) => {
-        state.tableItems = action.payload;
-        state.originalTableItems = action.payload;
-        state.isFetching = false;
-      })
-      .addCase(fetchTableData.rejected, (state, action) => {
-        state.isFetching = false;
-        state.error = action.payload as string;
-      });
+    setToBeFitFilter: (state, action: PayloadAction<string[]>) => {
+      state.toBeFitFilter = action.payload;
+    },
   },
 });
 
-export const { setTableItems, resetFilter } = tableSlice.actions;
+export const { setCurrentPage, setTableItems, setSearchQuery, setToBeFitFilter } = tableSlice.actions;
+
+export const updateTableItems = () => (dispatch: AppDispatch, getState: () => RootState) => {
+  const state = getState().table;
+  const { originalTableItems, currentPage, searchQuery, toBeFitFilter } = state;
+
+  let filteredItems = originalTableItems;
+  if (searchQuery) {
+    filteredItems = filteredItems.filter(item =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  if (toBeFitFilter.length > 0) {
+    filteredItems = filteredItems.filter(item => toBeFitFilter.includes(item.toBeFit));
+  }
+
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const updatedItems = filteredItems.slice(startIndex, endIndex);
+
+  dispatch(setTableItems(updatedItems));
+};
+
+export const selectTableItems = (state: RootState) => state.table.tableItems;
+export const selectIsFetching = (state: RootState) => state.table.isFetching;
+export const selectError = (state: RootState) => state.table.error;
+export const selectCurrentPage = (state: RootState) => state.table.currentPage;
+export const selectSearchQuery = (state: RootState) => state.table.searchQuery;
+export const selectToBeFitFilter = (state: RootState) => state.table.toBeFitFilter;
 
 export default tableSlice.reducer;
