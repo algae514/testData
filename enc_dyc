@@ -1,0 +1,31 @@
+enc_dyc_
+
+import Fernet
+
+def encrypt_file(filename, key):
+  """Encrypts a file and returns the encrypted data."""
+  with open(filename, "rb") as file:
+    file_data = file.read()
+  f = Fernet(key)
+  encrypted_data = f.encrypt(file_data)
+  return encrypted_data
+
+def decrypt_file(encrypted_data, key):
+  """Decrypts a file and returns the decrypted data."""
+  f = Fernet(key)
+  decrypted_data = f.decrypt(encrypted_data)
+  return decrypted_data
+
+def main():
+  """Encrypts and decrypts a file."""
+  key = Fernet.generate_key()
+  print("The key is:", key.decode("utf-8"))
+  encrypted_data = encrypt_file("my_file.txt", key)
+  with open("encrypted_file.txt", "wb") as file:
+    file.write(encrypted_data)
+  decrypted_data = decrypt_file(encrypted_data, key)
+  with open("decrypted_file.txt", "wb") as file:
+    file.write(decrypted_data)
+
+if __name__ == "__main__":
+  main()
