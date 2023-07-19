@@ -1,3 +1,12 @@
+
+import base64
+import os
+
+# Usage example
+file_path = 'C:\\temp\\index.html'
+
+import base64
+
 def encrypt_file(file_path, password):
     with open(file_path, 'rb') as file:
         data = file.read()
@@ -9,17 +18,21 @@ def encrypt_file(file_path, password):
         encrypted_byte = byte ^ ord(password[i % password_length])
         encrypted_data.append(encrypted_byte)
 
-    encrypted_file_path = file_path + '.encrypted'
+    encoded_data = base64.b64encode(encrypted_data)
+
+    encrypted_file_path = file_path + '.encrypted.txt'
 
     with open(encrypted_file_path, 'wb') as encrypted_file:
-        encrypted_file.write(encrypted_data)
+        encrypted_file.write(encoded_data)
 
     return encrypted_file_path
 
 
 def decrypt_file(encrypted_file_path, password):
     with open(encrypted_file_path, 'rb') as encrypted_file:
-        encrypted_data = encrypted_file.read()
+        encoded_data = encrypted_file.read()
+
+    encrypted_data = base64.b64decode(encoded_data)
 
     decrypted_data = bytearray()
     password_length = len(password)
@@ -28,7 +41,7 @@ def decrypt_file(encrypted_file_path, password):
         decrypted_byte = byte ^ ord(password[i % password_length])
         decrypted_data.append(decrypted_byte)
 
-    decrypted_file_path = encrypted_file_path + '.decrypted'
+    decrypted_file_path = encrypted_file_path[:-14]  # Remove the '.encrypted.txt' extension
 
     with open(decrypted_file_path, 'wb') as decrypted_file:
         decrypted_file.write(decrypted_data)
@@ -37,8 +50,8 @@ def decrypt_file(encrypted_file_path, password):
 
 
 # Usage example
-file_path = 'C:\\Users\\tumma\\OneDrive\\Documents\\scratch.txt'
-password = 'mystrongpassword'
+# file_path = 'path/to/file.txt'
+# password = 'mystrongpassword'
 
 encrypted_file = encrypt_file(file_path, password)
 print('File encrypted:', encrypted_file)
