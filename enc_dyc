@@ -1,49 +1,47 @@
-def encrypt_file(filename, password, output_filename):
-  """Encrypts a file using a password and saves it to a different file."""
-  with open(filename, "rb") as file:
-    file_data = file.read()
-  encrypted_data = _encrypt(file_data, password)
-  with open(output_filename, "wb") as file:
-    file.write(encrypted_data)
+def encrypt_file(file_path, password):
+    with open(file_path, 'rb') as file:
+        data = file.read()
 
-def decrypt_file(filename, password, output_filename):
-  """Decrypts a file using a password and saves it to a different file."""
-  with open(filename, "rb") as file:
-    encrypted_data = file.read()
-  decrypted_data = _decrypt(encrypted_data, password)
-  with open(output_filename, "wb") as file:
-    file.write(decrypted_data)
+    encrypted_data = bytearray()
+    password_length = len(password)
 
-def _encrypt(data, password):
-  """Encrypts data using a password."""
-  salt = os.urandom(16)
-  key = _generate_key(password, salt)
-  cipher = _create_cipher(key, "AES", "CBC")
-  encrypted_data = cipher.encrypt(data)
-  return salt + encrypted_data
+    for i, byte in enumerate(data):
+        encrypted_byte = byte ^ ord(password[i % password_length])
+        encrypted_data.append(encrypted_byte)
 
-def _decrypt(data, password):
-  """Decrypts data using a password."""
-  salt, encrypted_data = data[:16], data[16:]
-  key = _generate_key(password, salt)
-  cipher = _create_cipher(key, "AES", "CBC")
-  decrypted_data = cipher.decrypt(encrypted_data)
-  return decrypted_data
+    encrypted_file_path = file_path + '.encrypted'
 
-def _generate_key(password, salt):
-  """Generates a key from a password and salt."""
-  key = hashlib.sha256(password.encode("utf-8") + salt).digest()
-  return key[:32]
+    with open(encrypted_file_path, 'wb') as encrypted_file:
+        encrypted_file.write(encrypted_data)
 
-def _create_cipher(key, algorithm, mode):
-  """Creates a cipher object from a key and algorithm."""
-  cipher = Cipher(algorithms.AES(key), modes.CBC(salt), default_backend())
-  return cipher
+    return encrypted_file_path
 
-if __name__ == "__main__":
-  password = "my_secret_password"
-  input_filename = "my_file.txt"
-  output_filename = "encrypted_file.txt"
-  encrypt_file(input_filename, password, output_filename)
-  decrypted_filename = "decrypted_file.txt"
-  decrypt_file(output_filename, password, decrypted_filename)
+
+def decrypt_file(encrypted_file_path, password):
+    with open(encrypted_file_path, 'rb') as encrypted_file:
+        encrypted_data = encrypted_file.read()
+
+    decrypted_data = bytearray()
+    password_length = len(password)
+
+    for i, byte in enumerate(encrypted_data):
+        decrypted_byte = byte ^ ord(password[i % password_length])
+        decrypted_data.append(decrypted_byte)
+
+    decrypted_file_path = encrypted_file_path + '.decrypted'
+
+    with open(decrypted_file_path, 'wb') as decrypted_file:
+        decrypted_file.write(decrypted_data)
+
+    return decrypted_file_path
+
+
+# Usage example
+file_path = 'C:\\Users\\tumma\\OneDrive\\Documents\\scratch.txt'
+password = 'mystrongpassword'
+
+encrypted_file = encrypt_file(file_path, password)
+print('File encrypted:', encrypted_file)
+
+decrypted_file = decrypt_file(encrypted_file, password)
+print('File decrypted:', decrypted_file)
