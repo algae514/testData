@@ -1,3 +1,11 @@
+<html>
+<head>
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+
+<div class="mermaid">
 erDiagram
     POST ||--o{ CONTENT_BLOCK : contains
     POST ||--o{ FEED_ITEM : generates
@@ -146,3 +154,7 @@ erDiagram
         string thumbnailUrl
         string videoDuration
     }
+</div>
+
+</body>
+</html>
