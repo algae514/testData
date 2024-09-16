@@ -1,3 +1,13 @@
+// package json used. 
+// "axios": "^1.7.7",
+//     "firebase": "^10.13.1",
+//     "react": "^18.3.1",
+//     "react-dom": "^18.3.1",
+//     "react-router-dom": "^6.26.2",
+    
+
+
+
 // App.js
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
