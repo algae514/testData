@@ -16,13 +16,13 @@ import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, where } f
 
 // Replace with your Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyCJNscGO-DgxAJo97TYzBRZN-A3fMxv5NE",
-  authDomain: "tnscchat.firebaseapp.com",
-  projectId: "tnscchat",
-  storageBucket: "tnscchat.appspot.com",
-  messagingSenderId: "643019532734",
-  appId: "1:643019532734:web:e3a274d59d706adc1271ef",
-  measurementId: "G-F4YNFPFB27"
+  apiKey: "APIKEY",
+  authDomain: "SUBDOMAINNAME",
+  projectId: "pID",
+  storageBucket: "bucket",
+  messagingSenderId: "snder id ",
+  appId: "app id ",
+  measurementId: "MID"
 };
 
 const app = initializeApp(firebaseConfig);
